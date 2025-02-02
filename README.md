@@ -110,4 +110,53 @@ Taking `Partition 1` as a example <b/>
 6. The last `4B` indicate number of sectors in the partition, still `8 digits hex`, in this case is `0060f624`, do the same steps above, then you will get the number of number of sectors which is `620128256` if you did it correctly. Note that time it with the size of sector(normally `512B`) then you will get the size of the partition, `620128256 * 512 = 3.175056671x10^11`. Therefore this partition has total size of `317.51 GB`, but MBR it self won't tell you the sector size. <b/>
 
 ### Part 4: MBR boot signature
-In the Master Boot Record (MBR), the last two bytes are always `55AA`, which is the boot signature. This signature indicates that the MBR is valid and can be used by the system's BIOS to load the bootloader. I've never seen a MBR without the `0x55 0xAA`
+In the Master Boot Record (MBR), the last two bytes are always `55AA`, which is the boot signature. This signature indicates that the MBR is valid and can be used by the system's BIOS to load the bootloader. I've never seen a MBR without the `0x55 0xAA` <b/>
+
+## Play Around
+It's highly recommented to go through this decode proccess your self for once on your drive. <br />
+
+You can read the MBR from the drive using this python script, and try to decode it yourself. make sure you replace `\\.\PHYSICALDRIVE1` with your acuall disk path, For Windows, the path should be something like `\\.\PHYSICALDRIVE1`. To find the list of disk paths on Windows, run `wmic diskdrive list brief`; for Linux, the path should look like `/dev/sdX`, where X is a letter from a to b, such as `/dev/sda`. Find the list of disk paths on Linux by using `lsblk`. **DO NOT** use the path to a partition instead of the path to disk on linux, there shouldn't be a number behind the path, e.g. you should use something like `/dev/sda` instead of `/dev/sda1` <br />
+
+```python
+disk_path = r'\\.\PHYSICALDRIVE1'
+with open(disk_path, 'rb') as disk:
+    raw_data = disk.read(512)
+print(raw_data)
+```
+If you want to replace the boot code sector with 0 and see what happens, use this script(replace the path as well):
+```python
+def write_bytes_to_disk(offset, data):
+    disk_path = r"\\.\PHYSICALDRIVE1"
+
+    try:
+        # Open the disk in raw mode
+        with open(disk_path, 'r+b') as disk:
+
+            disk.seek(offset)
+
+            disk.write(data)
+            print(f"Successfully wrote {len(data)} bytes to {disk_path} at offset {offset}.")
+    except :
+        print("Error")
+
+# Example usage
+if __name__ == "__main__":
+    # Path to the disk (be very careful with this!)
+    # Offset in bytes (e.g., 0 for the start of the disk)
+    offset = 0
+
+    # Data to write (hexadecimal string)
+    hex_data = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000069d0e83000000020210083fec2ff000800000060f62400fec2ff07fec2ff0068f62400684552000000000000000000000000000000000000000000000000000000000000000055aa"
+
+    # Convert hex string to bytes
+    data = bytes.fromhex(hex_data)
+
+    # Write the data
+    write_bytes_to_disk(offset, data)
+```
+replace the hex data with your acuall hex data, this hex bytes are a example, you see that I basically replaced the boot code sector with 0 and leave the rest the same. <br />
+
+At last after you finish your own decoding, you can check if you did it correctly by this [repository](https://github.com/GepingY/PyPS/), or directly with this [program](https://github.com/GepingY/PyPS/blob/main/Main.py) <br />
+
+## Report
+If you find anything wrong with this note, please contact me through `ygp3737@gmail.com`
