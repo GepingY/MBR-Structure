@@ -1,5 +1,8 @@
 # MBR-Structure
-*This is a note regarding the structure of the general MasterBootRecord*
+*This is a note regarding the structure of the general MasterBootRecord* <br/>
+
+Keyword: MBR; MasterBootRecord; Structure; MBR Structure; MBR Binary; MBR Bytes; <br/>
+
 MBR is always the first `512 bytes` of the drive, here is the table of the structure <br/>
 <br/>
 | Bytes  | SumBytes | Description                                                                         |
